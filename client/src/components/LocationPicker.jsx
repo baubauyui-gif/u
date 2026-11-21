@@ -104,19 +104,16 @@ export default function LocationPicker({ value, onSaved, compact = false, submit
     setSaving(true);
     try {
       const payload = {
-        provinceId: selected.provinceId || provinceId,
-        provinceName: selected.provinceName || selectedProvince?.name,
+        mode: coords ? 'gps' : 'manual',
         localityId: selected.id,
-        localityName: selected.name,
         lat: coords?.lat ?? null,
         lng: coords?.lng ?? null,
-        locationMode: coords ? 'gps' : 'manual',
       };
       const data = await api.updateLocation(payload);
       if (data?.user) setUser(data.user);
       else await refresh();
-      toast(`Ubicación guardada: ${selected.name}, ${payload.provinceName}.`);
-      onSaved?.(payload);
+      toast(`Ubicación guardada: ${selected.name}, ${selected.provinceName || selectedProvince?.name}.`);
+      onSaved?.({ ...payload, localityName: selected.name, provinceName: selected.provinceName || selectedProvince?.name });
     } catch (err) {
       setError(errorMessage(err));
     } finally {
