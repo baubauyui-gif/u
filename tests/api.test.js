@@ -354,7 +354,7 @@ test('CHANGAPP · flujos completos A-H con datos persistentes', async (t) => {
     const me = await ana.request('/api/me');
     assert.equal(me.status, 200);
     assert.equal(me.data.user.id, anaId);
-    assert.equal(me.data.stats.activePublications, 1, 'El resumen cuenta las publicaciones activas');
+    assert.equal(me.data.stats.inProgressJobs, 1, 'El resumen cuenta los trabajos en curso');
 
     const brunoMe = await bruno.request('/api/me');
     assert.ok(brunoMe.data.stats.inProgressJobs >= 1, 'El resumen cuenta los trabajos en curso');
@@ -395,7 +395,7 @@ test('CHANGAPP · flujos completos A-H con datos persistentes', async (t) => {
       body: {
         title: 'Pintar una habitación chica',
         description: 'Necesito pintar una habitación de 3x3 con pintura incluida, dos manos.',
-        categoryId: 'pintura',
+        categoryId: 'reparaciones',
         localityId: locality.id,
         workDate: tomorrow(),
         workTime: '10:00',
