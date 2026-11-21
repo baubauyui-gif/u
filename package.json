@@ -1,0 +1,26 @@
+{
+  "name": "changapp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CHANGAPP - marketplace argentino de trabajos ocasionales",
+  "scripts": {
+    "dev": "node server/index.js",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "test": "node --test tests/"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "lucide-react": "^0.454.0",
+    "nodemailer": "^6.9.16",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "sql.js": "^1.12.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
+  }
+}
