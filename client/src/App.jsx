@@ -32,7 +32,7 @@ function RequireAuth({ children }) {
 
 function GuestOnly({ children }) {
   const { user } = useApp();
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={user.localityName ? '/' : '/ubicacion'} replace />;
   return children;
 }
 
