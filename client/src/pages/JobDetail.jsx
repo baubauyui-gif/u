@@ -124,8 +124,8 @@ export default function JobDetail() {
 
   async function openChat() {
     await run('chat', async () => {
-      const { conversation } = await api.openConversation(id);
-      navigate(`/mensajes/${conversation.id}`);
+      const { conversationId } = await api.openConversation(id);
+      navigate(`/mensajes/${conversationId}`);
     });
   }
 
