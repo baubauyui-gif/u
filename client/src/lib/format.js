@@ -52,6 +52,8 @@ export const relative = (value) => {
   return dateAR(value);
 };
 
+export const timeAgo = relative;
+
 export const initials = (name) => {
   const parts = String(name || '')
     .trim()
