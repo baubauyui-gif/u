@@ -97,3 +97,7 @@ export function Privacy() {
     </Doc>
   );
 }
+
+export default function Legal({ kind }) {
+  return kind === "privacy" ? <Privacy /> : <Terms />;
+}
