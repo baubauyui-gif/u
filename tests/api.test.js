@@ -181,7 +181,9 @@ test('CHANGAPP · flujos completos A-H con datos persistentes', async (t) => {
     assert.equal(adminReg.data.user.role, 'admin', 'El email configurado debe recibir rol de administrador');
 
     assert.equal((await ana.request('/api/auth/logout', { method: 'POST' })).status, 200);
-    assert.equal((await ana.request('/api/auth/me')).status, 401, 'Sin sesión no se accede al perfil');
+    const anonymousMe = await ana.request('/api/auth/me');
+    assert.equal(anonymousMe.status, 200);
+    assert.equal(anonymousMe.data.user, null, 'Tras cerrar sesión no queda ningún usuario autenticado');
 
     const relogin = await ana.request('/api/auth/login', { method: 'POST', body: { email: 'ana@changapp.test', password } });
     assert.equal(relogin.status, 200);
