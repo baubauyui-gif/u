@@ -3,11 +3,8 @@ import { all, get, run } from '../db.js';
 import { requireAuth } from '../auth.js';
 import {
   bad,
-  forbidden,
-  hashless,
-  int,
   isBlockedBetween,
-  localityByNames,
+  nearestLocality,
   notFound,
   nowIso,
   optionalText,
@@ -115,7 +112,7 @@ router.patch('/me/location', requireAuth, (req, res) => {
     const localityIdBody = String(req.body.localityId || '').trim();
     let locality = localityIdBody ? get('SELECT * FROM localities WHERE id = ?', [localityIdBody]) : null;
     if (!locality) {
-      const nearest = require('../lib.js').nearestLocality(lat, lng);
+      const nearest = nearestLocality(lat, lng);
       locality = nearest ? get('SELECT * FROM localities WHERE id = ?', [nearest.id]) : null;
     }
     if (!locality) bad('No pudimos determinar tu localidad. Elegila manualmente.');
