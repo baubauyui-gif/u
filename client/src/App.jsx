@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { useApp } from './context/AppContext.jsx';
 import Layout from './components/Layout.jsx';
 import { PageLoader } from './components/ui.jsx';
@@ -68,6 +68,7 @@ export default function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<Explore />} />
+        <Route path="/changas/:id" element={<JobDetail />} />
         <Route path="/changa/:id" element={<JobDetail />} />
         <Route
           path="/publicar"
@@ -78,7 +79,7 @@ export default function App() {
           }
         />
         <Route
-          path="/changa/:id/editar"
+          path="/changas/:id/editar"
           element={
             <RequireAuth>
               <PublishJob />
@@ -109,6 +110,7 @@ export default function App() {
             </RequireAuth>
           }
         />
+        <Route path="/usuarios/:id" element={<UserProfile />} />
         <Route path="/usuario/:id" element={<UserProfile />} />
         <Route
           path="/notificaciones"
@@ -153,9 +155,9 @@ function LocationHint() {
   return (
     <div className="location-hint">
       <span>Configurá tu ubicación para ver changas cerca tuyo.</span>
-      <a href="/ubicacion" className="btn sm">
+      <Link to="/ubicacion" className="btn sm">
         Elegir ubicación
-      </a>
+      </Link>
     </div>
   );
 }
