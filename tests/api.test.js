@@ -334,17 +334,17 @@ test('CHANGAPP · flujos completos A-H con datos persistentes', async (t) => {
     assert.equal(anaInbox.status, 200);
     const applicationNotice = anaInbox.data.notifications.find((n) => n.type === 'postulacion');
     assert.ok(applicationNotice, 'El publicador recibe la notificación de la nueva postulación');
-    assert.ok(anaInbox.data.unread >= 1);
+    assert.ok(anaInbox.data.unreadCount >= 1);
 
     const brunoInbox = await bruno.request('/api/notifications');
     assert.ok(brunoInbox.data.notifications.some((n) => n.type === 'postulacion_aceptada'), 'El postulante sabe que fue seleccionado');
     assert.ok(brunoInbox.data.notifications.some((n) => n.type === 'mensaje'), 'El destinatario recibe la notificación del mensaje');
 
-    const unreadBefore = anaInbox.data.unread;
+    const unreadBefore = anaInbox.data.unreadCount;
     const marked = await ana.request(`/api/notifications/${applicationNotice.id}/read`, { method: 'POST' });
     assert.equal(marked.status, 200);
     const anaAfter = await ana.request('/api/notifications');
-    assert.equal(anaAfter.data.unread, unreadBefore - 1, 'Marcar como leída cambia el estado real');
+    assert.equal(anaAfter.data.unreadCount, unreadBefore - 1, 'Marcar como leída cambia el estado real');
 
     const foreignRead = await carla.request(`/api/notifications/${applicationNotice.id}/read`, { method: 'POST' });
     assert.ok([403, 404].includes(foreignRead.status), 'Nadie puede modificar notificaciones ajenas');
@@ -354,10 +354,10 @@ test('CHANGAPP · flujos completos A-H con datos persistentes', async (t) => {
     const me = await ana.request('/api/me');
     assert.equal(me.status, 200);
     assert.equal(me.data.user.id, anaId);
-    assert.equal(me.data.stats.activeJobs, 1, 'El resumen cuenta las publicaciones activas');
+    assert.equal(me.data.stats.activePublications, 1, 'El resumen cuenta las publicaciones activas');
 
     const brunoMe = await bruno.request('/api/me');
-    assert.ok(brunoMe.data.stats.applications >= 1, 'El resumen cuenta las postulaciones');
+    assert.ok(brunoMe.data.stats.inProgressJobs >= 1, 'El resumen cuenta los trabajos en curso');
 
     const updated = await ana.request('/api/me', {
       method: 'PATCH',
@@ -373,7 +373,7 @@ test('CHANGAPP · flujos completos A-H con datos persistentes', async (t) => {
 
     const publicProfile = await bruno.request(`/api/users/${anaId}`);
     assert.equal(publicProfile.status, 200);
-    assert.equal(publicProfile.data.user.email, undefined, 'El email privado nunca se expone en el perfil público');
+    assert.equal(publicProfile.data.user.email ?? null, null, 'El email privado nunca se expone en el perfil público');
   });
 
   await t.test('G · ubicación manual persistente y filtros reales', async () => {
@@ -390,15 +390,35 @@ test('CHANGAPP · flujos completos A-H con datos persistentes', async (t) => {
     assert.equal(persisted.data.user.localityId, locality.id, 'La ubicación sigue configurada al volver a entrar');
     assert.equal(persisted.data.user.provinceName, locality.provinceName);
 
-    const nearby = await bruno.request(`/api/jobs?scope=locality&locality=${encodeURIComponent(locality.name)}`);
-    assert.equal(nearby.status, 200);
-    assert.ok(nearby.data.jobs.some((job) => job.id === jobId), 'El filtro por localidad devuelve la changa de esa zona');
+    const activeJob = await ana.request('/api/jobs', {
+      method: 'POST',
+      body: {
+        title: 'Pintar una habitación chica',
+        description: 'Necesito pintar una habitación de 3x3 con pintura incluida, dos manos.',
+        categoryId: 'pintura',
+        localityId: locality.id,
+        workDate: tomorrow(),
+        workTime: '10:00',
+        duration: '1 día',
+        payTotal: 22000,
+        payType: 'negociable',
+      },
+    });
+    assert.equal(activeJob.status, 201, JSON.stringify(activeJob.data));
+    const activeJobId = activeJob.data.job.id;
 
-    const filteredOut = await bruno.request('/api/jobs?q=pasto&minPay=999999');
+    const nearby = await bruno.request(`/api/jobs?locality=${encodeURIComponent(locality.name)}`);
+    assert.equal(nearby.status, 200);
+    assert.ok(nearby.data.jobs.some((job) => job.id === activeJobId), 'El filtro por localidad devuelve las changas de esa zona');
+
+    const otherLocality = await bruno.request('/api/jobs?locality=Ushuaia');
+    assert.ok(!otherLocality.data.jobs.some((job) => job.id === activeJobId), 'Otra localidad no muestra esa changa');
+
+    const filteredOut = await bruno.request('/api/jobs?minPay=999999');
     assert.equal(filteredOut.data.jobs.length, 0, 'El filtro de pago mínimo modifica los resultados');
 
     const category = await bruno.request('/api/jobs?category=limpieza');
-    assert.ok(!category.data.jobs.some((job) => job.id === jobId), 'El filtro por categoría excluye otras categorías');
+    assert.ok(!category.data.jobs.some((job) => job.id === activeJobId), 'El filtro por categoría excluye otras categorías');
   });
 
   await t.test('H · seguridad: operaciones ajenas rechazadas en backend', async () => {
@@ -413,7 +433,7 @@ test('CHANGAPP · flujos completos A-H con datos persistentes', async (t) => {
 
     const foreignProfile = await bruno.request(`/api/users/${carlaId}`);
     assert.equal(foreignProfile.status, 200);
-    assert.equal(foreignProfile.data.user.email, undefined, 'Sin datos privados de terceros');
+    assert.equal(foreignProfile.data.user.email ?? null, null, 'Sin datos privados de terceros');
 
     const earlyReview = await ana.request('/api/reviews', {
       method: 'POST',

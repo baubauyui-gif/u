@@ -415,7 +415,7 @@ router.post('/jobs/:id/request-completion', requireAuth, (req, res) => {
   const isOwner = job.owner_id === req.user.id;
   const timestamp = nowIso();
   const ownerConfirmed = isOwner ? timestamp : job.owner_confirmed_at;
-  const workerConfirmed = isOwner ? job.owner_confirmed_at : timestamp;
+  const workerConfirmed = isOwner ? job.worker_confirmed_at : timestamp;
   run(
     `UPDATE jobs SET status = 'pendiente_confirmacion', owner_confirmed_at = ?, worker_confirmed_at = ?, updated_at = ? WHERE id = ?`,
     [ownerConfirmed, workerConfirmed, timestamp, job.id],
@@ -440,7 +440,7 @@ router.post('/jobs/:id/confirm', requireAuth, (req, res) => {
   const isOwner = job.owner_id === req.user.id;
   const timestamp = nowIso();
   const ownerConfirmed = isOwner ? timestamp : job.owner_confirmed_at;
-  const workerConfirmed = isOwner ? job.owner_confirmed_at : timestamp;
+  const workerConfirmed = isOwner ? job.worker_confirmed_at : timestamp;
   if (ownerConfirmed && workerConfirmed) {
     tx(() => {
       run("UPDATE jobs SET status = 'completada', completed_at = ?, owner_confirmed_at = ?, worker_confirmed_at = ?, updated_at = ? WHERE id = ?", [
